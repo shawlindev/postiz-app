@@ -1,0 +1,40 @@
+---
+# FFL bridge-fork build: amd64 image of this fork at tags like v2.22.1-ffl.1,
+# pushed to ghcr.io/shawlindev/postiz-app. Upstream's build-containers.yml is
+# disabled on this fork (it targets ghcr.io/gitroomhq).
+name: "FFL Build Container"
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*-ffl.*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to ghcr
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Build and Push Image
+        run: |
+          docker buildx build --platform linux/amd64 \
+            -f Dockerfile.dev \
+            --build-arg NEXT_PUBLIC_VERSION=${{ github.ref_name }} \
+            --pull \
+            --provenance=false --sbom=false \
+            --output "type=registry,name=ghcr.io/shawlindev/postiz-app:${{ github.ref_name }}" .
