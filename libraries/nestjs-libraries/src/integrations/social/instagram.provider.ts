@@ -721,6 +721,21 @@ export class InstagramProvider
         const itemCollaborators =
           firstPost?.media?.length === 1 ? collaborators : ``;
 
+        // user_tags on stories = mentions without a sticker (Graph API, since 2025-07-09).
+        // x/y are optional for stories; a tag placed over a rendered CTA makes the story tappable.
+        const userTags =
+          isStory && firstPost?.settings?.user_tags?.length
+            ? `&user_tags=${encodeURIComponent(
+                JSON.stringify(
+                  firstPost.settings.user_tags.map((t) => ({
+                    username: t.username.replace(/^@/, ''),
+                    ...(typeof t.x !== 'undefined' ? { x: +t.x } : {}),
+                    ...(typeof t.y !== 'undefined' ? { y: +t.y } : {}),
+                  }))
+                )
+              )}`
+            : ``;
+
         // audio_configuration is only supported for Reels (single video, not a story)
         // and only with Facebook Login (not Instagram Login / graph.instagram.com)
         const audioConfiguration =
@@ -746,7 +761,7 @@ export class InstagramProvider
 
         const { id: photoId } = await (
           await this.fetch(
-            `https://${type}/${META_GRAPH_API_VERSION}/${id}/media?${mediaType}${isCarousel}${itemCollaborators}${trialParams}${audioConfiguration}&access_token=${accessToken}${caption}`,
+            `https://${type}/${META_GRAPH_API_VERSION}/${id}/media?${mediaType}${isCarousel}${itemCollaborators}${userTags}${trialParams}${audioConfiguration}&access_token=${accessToken}${caption}`,
             {
               method: 'POST',
             }
