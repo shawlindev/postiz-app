@@ -48,6 +48,26 @@ export class InstagramAudio {
   @Max(100)
   video_volume?: number;
 }
+export class InstagramUserTag {
+  @IsDefined()
+  @IsString()
+  username: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  @Max(1)
+  x?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  @Max(1)
+  y?: number;
+}
+
 export class InstagramDto {
   @IsIn(['post', 'story'])
   @IsDefined()
@@ -70,4 +90,11 @@ export class InstagramDto {
   @ValidateNested()
   @IsOptional()
   audio?: InstagramAudio;
+
+  // stories only: mentions without a sticker, optionally placed at x/y (0..1)
+  @Type(() => InstagramUserTag)
+  @ValidateNested({ each: true })
+  @IsArray()
+  @IsOptional()
+  user_tags?: InstagramUserTag[];
 }
