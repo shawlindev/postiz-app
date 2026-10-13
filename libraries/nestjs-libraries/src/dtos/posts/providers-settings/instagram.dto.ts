@@ -76,6 +76,10 @@ export class InstagramDto {
   @IsOptional()
   is_trial_reel?: boolean;
 
+  // AI info label on the published post (feed / reel / carousel; ignored for stories)
+  @IsOptional()
+  is_ai_generated?: boolean;
+
   @IsIn(['MANUAL', 'SS_PERFORMANCE'])
   @IsOptional()
   graduation_strategy?: 'MANUAL' | 'SS_PERFORMANCE';

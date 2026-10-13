@@ -606,6 +606,12 @@ export class InstagramProvider
     console.log('in progress', id);
     const isStory = firstPost.settings.post_type === 'story';
     const isTrialReel = this.assetBoolean(firstPost.settings.is_trial_reel);
+    // AI info label (Graph API, 2026-06-22, all versions): set on the container that gets published —
+    // the single media container, or for a carousel the parent container only. Not sent on stories.
+    const aiLabel =
+      !isStory && this.assetBoolean(firstPost.settings.is_ai_generated)
+        ? `&is_ai_generated=true`
+        : ``;
     const medias = await Promise.all(
       firstPost?.media?.map(async (m) => {
         const caption =
@@ -688,7 +694,9 @@ export class InstagramProvider
 
         const { id: photoId } = await (
           await this.fetch(
-            `https://${type}/v20.0/${id}/media?${mediaType}${isCarousel}${collaborators}${userTags}${trialParams}${audioConfiguration}&access_token=${accessToken}${caption}`,
+            `https://${type}/v20.0/${id}/media?${mediaType}${isCarousel}${collaborators}${userTags}${trialParams}${audioConfiguration}${
+              firstPost?.media?.length === 1 ? aiLabel : ``
+            }&access_token=${accessToken}${caption}`,
             {
               method: 'POST',
             }
@@ -790,7 +798,7 @@ export class InstagramProvider
             firstPost?.message
           )}&media_type=CAROUSEL&children=${encodeURIComponent(
             medias.join(',')
-          )}&access_token=${accessToken}`,
+          )}${aiLabel}&access_token=${accessToken}`,
           {
             method: 'POST',
           }
